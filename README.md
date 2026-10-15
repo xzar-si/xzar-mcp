@@ -23,6 +23,10 @@ Live today: patent examination (first action, response, appeal). More fields are
 }
 ```
 
+## Hosted connector (no install)
+
+In Claude or any MCP client that supports remote servers: add `https://api.xzar.si/mcp` and sign in with your Xzar API key.
+
 ## Tools
 
 | Tool | What it does |

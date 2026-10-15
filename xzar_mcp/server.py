@@ -18,7 +18,7 @@ import urllib.request
 from typing import Any, Callable, TextIO
 
 PROTOCOL_VERSION = "2025-06-18"
-SERVER_INFO = {"name": "xzar", "version": "0.1.0"}
+SERVER_INFO = {"name": "xzar", "version": "0.1.1"}
 
 TOOLS = [
     {"name": "start_task", "description": "Start a new task episode. Returns the episode id, the instructions and the tool budget.",
@@ -45,6 +45,22 @@ TOOLS = [
      "inputSchema": {"type": "object", "properties": {}}},
     {"name": "get_usage", "description": "Your credit balance and recent charges.", "inputSchema": {"type": "object", "properties": {}}},
 ]
+
+# Directory requirement: every tool has a title and safety hints. Nothing here deletes or changes the user's data;
+# start_task and submit_answer use credit, so they are not read-only.
+ANNOTATIONS = {
+    "start_task": {"title": "Start an evaluation task", "readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "search_library": {"title": "Search the case's reference library", "readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
+    "read_publication": {"title": "Read a library publication", "readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
+    "search_rules": {"title": "Search the rulebook", "readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
+    "read_rule": {"title": "Read a rulebook section", "readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
+    "submit_answer": {"title": "Submit the agent's answer for grading", "readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "get_scorecard": {"title": "Get your scorecard", "readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
+    "get_usage": {"title": "Get your credit balance and usage", "readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
+}
+for _tool in TOOLS:
+    _tool["title"] = ANNOTATIONS[_tool["name"]]["title"]
+    _tool["annotations"] = ANNOTATIONS[_tool["name"]]
 
 Requester = Callable[[str, str, Any], tuple[int, Any]]
 
