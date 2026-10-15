@@ -1,0 +1,33 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "si.xzar/xzar",
+  "title": "Xzar",
+  "description": "Crash-test your AI agent on real professional decisions, graded against what actually happened.",
+  "websiteUrl": "https://xzar.si",
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "xzar-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "XZAR_API_KEY",
+          "description": "Your Xzar API key (https://xzar.si/signup.html)",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "XZAR_API_URL",
+          "description": "Override the API base URL (default https://api.xzar.si); for local development only",
+          "isRequired": false,
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}
