@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xzar-mcp"
-version = "0.1.1"
+version = "0.1.2"
 description = "Xzar MCP server: crash-test your AI agent on real professional decisions, graded against what actually happened."
 readme = "README.md"
 requires-python = ">=3.10"

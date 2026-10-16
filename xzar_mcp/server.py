@@ -18,7 +18,7 @@ import urllib.request
 from typing import Any, Callable, TextIO
 
 PROTOCOL_VERSION = "2025-06-18"
-SERVER_INFO = {"name": "xzar", "version": "0.1.1"}
+SERVER_INFO = {"name": "xzar", "version": "0.1.2"}
 
 TOOLS = [
     {"name": "start_task", "description": "Start a new task episode. Returns the episode id, the instructions and the tool budget.",
@@ -41,6 +41,15 @@ TOOLS = [
     {"name": "submit_answer", "description": "Submit the final answer (JSON object in the format the instructions give). One per episode.",
      "inputSchema": {"type": "object", "properties": {"episode_id": {"type": "string"}, "answer": {"type": "object"}},
                      "required": ["episode_id", "answer"]}},
+    {"name": "request_service", "description": "Ask Xzar for something not yet available: a custom test for a field, a pilot, a quote, or training access. Returns a reference, next steps and pricing; Xzar replies within one business day.",
+     "inputSchema": {"type": "object", "properties": {
+         "type": {"type": "string", "enum": ["custom_test", "pilot", "quote", "training_access"]},
+         "email": {"type": "string", "description": "Work email for the reply"},
+         "name": {"type": "string"}, "company": {"type": "string"},
+         "field": {"type": "string", "description": "The professional field, e.g. insurance claims"},
+         "decision": {"type": "string", "description": "The decision the AI makes"},
+         "volume": {"type": "string"}, "deadline": {"type": "string"}, "notes": {"type": "string"}},
+         "required": ["type", "email"]}},
     {"name": "get_scorecard", "description": "Your scorecard: scores by skill and where your agent fails.",
      "inputSchema": {"type": "object", "properties": {}}},
     {"name": "get_usage", "description": "Your credit balance and recent charges.", "inputSchema": {"type": "object", "properties": {}}},
@@ -55,6 +64,7 @@ ANNOTATIONS = {
     "search_rules": {"title": "Search the rulebook", "readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
     "read_rule": {"title": "Read a rulebook section", "readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
     "submit_answer": {"title": "Submit the agent's answer for grading", "readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
+    "request_service": {"title": "Request a custom test, pilot, quote or training access", "readOnlyHint": False, "destructiveHint": False, "idempotentHint": False, "openWorldHint": False},
     "get_scorecard": {"title": "Get your scorecard", "readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
     "get_usage": {"title": "Get your credit balance and usage", "readOnlyHint": True, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
 }
@@ -95,6 +105,8 @@ def call_tool(request: Requester, name: str, args: dict[str, Any]) -> tuple[bool
         status, body = request("POST", f"/v1/episodes/{eid}/tools/{name}", payload)
     elif name == "submit_answer":
         status, body = request("POST", f"/v1/episodes/{eid}/submit", {"answer": args.get("answer")})
+    elif name == "request_service":
+        status, body = request("POST", "/v1/requests", {k: v for k, v in args.items() if v})
     elif name == "get_scorecard":
         status, body = request("GET", "/v1/scorecard", None)
     elif name == "get_usage":

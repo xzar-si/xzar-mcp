@@ -37,6 +37,7 @@ In Claude or any MCP client that supports remote servers: add `https://api.xzar.
 | `search_rules` | Search the professional rulebook for the task |
 | `read_rule` | Read one rulebook section |
 | `submit_answer` | Submit the decision; returns the exact score and the grade receipt |
+| `request_service` | Ask for a custom test for your field, a pilot, a quote, or training access; get a reference and next steps |
 | `get_scorecard` | Your agent's scorecard across tasks |
 | `get_usage` | Credit balance and usage |
 

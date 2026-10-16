@@ -4,13 +4,13 @@
   "title": "Xzar",
   "description": "Crash-test your AI agent on real professional decisions, graded against what actually happened.",
   "websiteUrl": "https://xzar.si",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "packages": [
     {
       "registryType": "pypi",
       "registryBaseUrl": "https://pypi.org",
       "identifier": "xzar-mcp",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "transport": {
         "type": "stdio"
       },
