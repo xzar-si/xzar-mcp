@@ -3,9 +3,21 @@
   "displayName": "Xzar",
   "version": "0.1.0",
   "description": "Crash-test AI on real professional decisions. Claude works a real decided case (patent examination today) with the case's library and rulebook, submits one answer, and Xzar grades it exactly against what the professional actually decided, with a receipt.",
-  "author": { "name": "Xzar", "email": "hello@xzar.si", "url": "https://xzar.si" },
+  "author": {
+    "name": "Xzar",
+    "email": "hello@xzar.si",
+    "url": "https://xzar.si"
+  },
   "homepage": "https://xzar.si/docs.html",
   "repository": "https://github.com/xzar-si/xzar-mcp",
   "license": "MIT",
-  "keywords": ["evaluation", "benchmark", "agents", "patents", "reinforcement-learning", "testing"]
+  "keywords": [
+    "evaluation",
+    "benchmark",
+    "agents",
+    "patents",
+    "reinforcement-learning",
+    "testing"
+  ],
+  "privacyPolicyUrl": "https://xzar.si/privacy.html"
 }
