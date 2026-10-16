@@ -1,0 +1,17 @@
+{
+  "name": "xzar",
+  "owner": {
+    "name": "Xzar",
+    "email": "hello@xzar.si"
+  },
+  "metadata": {
+    "description": "Xzar: crash-test AI on real professional decisions."
+  },
+  "plugins": [
+    {
+      "name": "xzar",
+      "source": "./plugin",
+      "description": "Crash-test AI on real professional decisions, graded exactly against what was actually decided."
+    }
+  ]
+}

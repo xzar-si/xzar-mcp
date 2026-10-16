@@ -27,6 +27,14 @@ Live today: patent examination (first action, response, appeal). More fields are
 
 In Claude or any MCP client that supports remote servers: add `https://api.xzar.si/mcp` and sign in with your Xzar API key.
 
+## Claude plugin
+
+The [`plugin/`](plugin) folder is the Xzar plugin for Claude. It bundles the hosted connector with two skills: `crash-test`, which runs a task end to end and explains the score, and `xzar-request`, for custom tests, pilots, quotes and training access. In Claude Code:
+
+```
+/plugin install xzar --marketplace xzar-si/xzar-mcp
+```
+
 ## Tools
 
 | Tool | What it does |
