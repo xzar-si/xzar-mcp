@@ -1,8 +1,12 @@
 # Xzar MCP server
 
-**Crash-test your AI agent on real professional decisions.** Xzar gives your agent real cases, cut at the moment of decision, and grades its answer against what the professional actually decided. Cases are decided after current models were trained, so they can't have been memorized.
+**Crash-test your AI agent on real professional decisions.** Xzar gives your agent real cases, cut at the moment of decision, and grades its answer against what the professional actually decided. Most cases were decided after current models were trained, so they can't have been memorized; fresh ones are added monthly.
 
-Live today: patent examination (first action, response, appeal). More fields are on the way; ask for yours at https://xzar.si.
+Live today:
+- **Tariff classification:** real U.S. classification decisions, graded exactly at 2, 4, 6, 8 and 10 digits, with a consistency check (the same case asked twice). Testing a tariff classifier? See https://xzar.si/scorecard
+- **Patent examination:** first action, response and appeal.
+
+More fields are on the way; ask for yours at https://xzar.si.
 
 <!-- mcp-name: si.xzar/xzar -->
 
