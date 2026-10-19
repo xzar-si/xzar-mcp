@@ -5,7 +5,8 @@ tools/list, tools/call (plus ping and notifications). No SDK dependency. Every t
 hosted API with the buyer's API key from the environment (XZAR_API_KEY, XZAR_API_URL); this process
 holds no tasks and no answer keys.
 
-Tools: start_task, search_library, read_publication, submit_answer, get_scorecard, get_usage.
+Tools: start_task, search_library, read_publication, search_rules, read_rule, submit_answer, request_service,
+get_scorecard, get_usage.
 """
 
 from __future__ import annotations
@@ -18,41 +19,77 @@ import urllib.request
 from typing import Any, Callable, TextIO
 
 PROTOCOL_VERSION = "2025-06-18"
-SERVER_INFO = {"name": "xzar", "version": "0.1.2"}
+SERVER_INFO = {"name": "xzar", "version": "0.1.3"}
+
+EPISODE = {"type": "string", "description": "The episode id returned by start_task, e.g. ep_3f9c2a1b0d4e5f6a7b8c9d0e"}
 
 TOOLS = [
-    {"name": "start_task", "description": "Start a new task episode. Returns the episode id, the instructions and the tool budget.",
+    {"name": "start_task", "description": "Start a new evaluation task (one episode) and get the case. Call this first. Returns the "
+                                          "episode id (needed by every other episode tool), the case instructions, the answer "
+                                          "format and the tool budget. Uses one task of credit; a start that fails on Xzar's side "
+                                          "is refunded.",
      "inputSchema": {"type": "object", "properties": {
-         "task_id": {"type": "string", "description": "Optional specific task id"},
-         "taskset": {"type": "string", "description": "Optional task set: patents-first-action (default), "
-                                                      "patents-response or patents-appeal"}}}},
-    {"name": "search_library", "description": "Search the episode's prior-art library (publications dated before the filing date).",
-     "inputSchema": {"type": "object", "properties": {"episode_id": {"type": "string"}, "query": {"type": "string"}},
-                     "required": ["episode_id", "query"]}},
-    {"name": "read_publication", "description": "Read one publication from the episode's library.",
-     "inputSchema": {"type": "object", "properties": {"episode_id": {"type": "string"}, "publication": {"type": "string"}},
-                     "required": ["episode_id", "publication"]}},
-    {"name": "search_rules", "description": "Search the examination manual for the rules and tests examiners apply.",
-     "inputSchema": {"type": "object", "properties": {"episode_id": {"type": "string"}, "query": {"type": "string"}},
-                     "required": ["episode_id", "query"]}},
-    {"name": "read_rule", "description": "Read one examination manual section by number, e.g. 2143.01.",
-     "inputSchema": {"type": "object", "properties": {"episode_id": {"type": "string"}, "section": {"type": "string"}},
-                     "required": ["episode_id", "section"]}},
-    {"name": "submit_answer", "description": "Submit the final answer (JSON object in the format the instructions give). One per episode.",
-     "inputSchema": {"type": "object", "properties": {"episode_id": {"type": "string"}, "answer": {"type": "object"}},
-                     "required": ["episode_id", "answer"]}},
-    {"name": "request_service", "description": "Ask Xzar for something not yet available: a custom test for a field, a pilot, a quote, or training access. Returns a reference, next steps and pricing; Xzar replies within one business day.",
+         "taskset": {"type": "string", "enum": ["patents-first-action", "patents-response", "patents-appeal",
+                                                "tariffs-classification"],
+                     "description": "Which kind of case to work. Default patents-first-action. tariffs-classification "
+                                    "asks for the tariff code of a real product."},
+         "task_id": {"type": "string", "description": "A specific task id to retry; omit to get the next unserved case"}}}},
+    {"name": "search_library", "description": "Search the case's reference library (patent cases: prior-art publications dated "
+                                              "before the filing date). Use it to find evidence before deciding. Returns matching "
+                                              "publication ids with titles and snippets; read one with read_publication. Counts "
+                                              "against the tool budget.",
      "inputSchema": {"type": "object", "properties": {
-         "type": {"type": "string", "enum": ["custom_test", "pilot", "quote", "training_access"]},
+         "episode_id": EPISODE,
+         "query": {"type": "string", "description": "Keywords or a short phrase describing the technology, e.g. 'battery cell cooling plate'"}},
+         "required": ["episode_id", "query"]}},
+    {"name": "read_publication", "description": "Read the full text of one publication from the case's library, by the id "
+                                                "search_library returned. Use it to check whether a reference really discloses "
+                                                "what the claim requires. Counts against the tool budget.",
+     "inputSchema": {"type": "object", "properties": {
+         "episode_id": EPISODE,
+         "publication": {"type": "string", "description": "Publication id from search_library results, e.g. US20190012345A1"}},
+         "required": ["episode_id", "publication"]}},
+    {"name": "search_rules", "description": "Search the professional rulebook for the case (patent cases: the examination manual "
+                                            "examiners follow). Use it to find the legal test that applies. Returns section "
+                                            "numbers and titles; read one with read_rule.",
+     "inputSchema": {"type": "object", "properties": {
+         "episode_id": EPISODE,
+         "query": {"type": "string", "description": "The rule or test you need, e.g. 'obviousness combining references'"}},
+         "required": ["episode_id", "query"]}},
+    {"name": "read_rule", "description": "Read one rulebook section by its number, as returned by search_rules. Returns the "
+                                         "section text.",
+     "inputSchema": {"type": "object", "properties": {
+         "episode_id": EPISODE,
+         "section": {"type": "string", "description": "Section number, e.g. 2143.01"}},
+         "required": ["episode_id", "section"]}},
+    {"name": "submit_answer", "description": "Submit the final decision for the episode, as a JSON object in the format "
+                                             "start_task gave (tariff cases: {\"code\": \"8471300100\"}, 10 digits, 8 accepted). One answer per "
+                                             "episode; it ends the episode. Returns the exact score against what the professional "
+                                             "actually decided, plus a grade receipt. The answer key itself is never shown.",
+     "inputSchema": {"type": "object", "properties": {
+         "episode_id": EPISODE,
+         "answer": {"type": "object", "description": "The decision, in the answer format from start_task"}},
+         "required": ["episode_id", "answer"]}},
+    {"name": "request_service", "description": "Ask Xzar for something not available self-serve: a custom test for a field, a "
+                                               "pilot, a quote, or training access. Returns a reference, next steps and pricing; "
+                                               "Xzar replies by email within one business day. Does not use credit.",
+     "inputSchema": {"type": "object", "properties": {
+         "type": {"type": "string", "enum": ["custom_test", "pilot", "quote", "training_access"],
+                  "description": "What you are asking for"},
          "email": {"type": "string", "description": "Work email for the reply"},
-         "name": {"type": "string"}, "company": {"type": "string"},
+         "name": {"type": "string", "description": "Your name"},
+         "company": {"type": "string", "description": "Your company or team"},
          "field": {"type": "string", "description": "The professional field, e.g. insurance claims"},
-         "decision": {"type": "string", "description": "The decision the AI makes"},
-         "volume": {"type": "string"}, "deadline": {"type": "string"}, "notes": {"type": "string"}},
+         "decision": {"type": "string", "description": "The decision your AI makes, e.g. approve or deny a claim"},
+         "volume": {"type": "string", "description": "Rough number of cases or tasks you need"},
+         "deadline": {"type": "string", "description": "When you need it, e.g. end of Q1"},
+         "notes": {"type": "string", "description": "Anything else Xzar should know"}},
          "required": ["type", "email"]}},
-    {"name": "get_scorecard", "description": "Your scorecard: scores by skill and where your agent fails.",
+    {"name": "get_scorecard", "description": "Get your agent's scorecard across all finished episodes: scores by skill and the "
+                                             "failure types it hits most often. Read-only; no credit used.",
      "inputSchema": {"type": "object", "properties": {}}},
-    {"name": "get_usage", "description": "Your credit balance and recent charges.", "inputSchema": {"type": "object", "properties": {}}},
+    {"name": "get_usage", "description": "Get your credit balance and your most recent charges and top-ups. Read-only; no "
+                                         "credit used.", "inputSchema": {"type": "object", "properties": {}}},
 ]
 
 # Directory requirement: every tool has a title and safety hints. Nothing here deletes or changes the user's data;
